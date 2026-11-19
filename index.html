@@ -141,5 +141,48 @@ footer{padding:25px;text-align:center;border-top:1px solid #ffffff15;color:#9990
 <footer>
 © 2026 DENI DIGITAL by Deni Saputra. All Rights Reserved.
 </footer>
+
+<script>
+const checkoutButton = document.createElement("button");
+
+checkoutButton.textContent = "TEST PAYMENT — Rp50.000";
+checkoutButton.className = "btn";
+checkoutButton.style.margin = "20px auto";
+checkoutButton.style.display = "block";
+
+document.querySelector("footer").after(checkoutButton);
+
+checkoutButton.addEventListener("click", async () => {
+  checkoutButton.disabled = true;
+  checkoutButton.textContent = "Memproses pembayaran...";
+
+  try {
+    const response = await fetch(
+      "/.netlify/functions/create-transaction",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          productId: "ebook"
+        })
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.redirect_url) {
+      throw new Error("Checkout gagal");
+    }
+
+    window.location.href = result.redirect_url;
+  } catch (error) {
+    alert("Pembayaran belum berhasil dibuat. Silakan coba lagi.");
+    checkoutButton.disabled = false;
+    checkoutButton.textContent = "TEST PAYMENT — Rp50.000";
+  }
+});
+</script>
 </body>
 </html>
