@@ -175,9 +175,8 @@ checkoutButton.addEventListener("click", async () => {
     if (!response.ok || !result.redirect_url) {
   throw new Error(result.message || "Checkout gagal");
 }
-    }
 
-    window.location.href = result.redirect_url;
+window.location.href = result.redirect_url;
   } catch (error) {
     alert(error.message || "Pembayaran gagal"); Silakan coba lagi.");
     checkoutButton.disabled = false;
