@@ -1,6 +1,4 @@
 
-const crypto = require("crypto");
-
 const PRODUCTS = {
   ebook: {
     name: "Ebook Digital",
@@ -22,7 +20,7 @@ exports.handler = async (event) => {
       process.env.MIDTRANS_IS_PRODUCTION === "true";
 
     if (!serverKey) {
-      throw new Error("Payment configuration missing");
+      throw new Error("MIDTRANS_SERVER_KEY belum diatur");
     }
 
     const { productId } = JSON.parse(event.body || "{}");
@@ -31,19 +29,19 @@ exports.handler = async (event) => {
     if (!product) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: "Produk tidak valid" })
+        body: JSON.stringify({ message: "Produk tidak ditemukan" })
       };
     }
 
-    const orderId = `DENI-${Date.now()}-${crypto.randomBytes(3).toString("hex")}`;
-
+    const orderId = `DENI-${Date.now()}`;
     const auth = Buffer.from(`${serverKey}:`).toString("base64");
 
+    const baseUrl = isProduction
+      ? "https://app.midtrans.com"
+      : "https://app.sandbox.midtrans.com";
+
     const response = await fetch(
-      `${isProduction
-        ? "https://app.midtrans.com"
-        : "https://app.sandbox.midtrans.com"
-      }/snap/v1/transactions`,
+      `${baseUrl}/snap/v1/transactions`,
       {
         method: "POST",
         headers: {
@@ -68,16 +66,14 @@ exports.handler = async (event) => {
 
     const data = await response.json();
 
-    if (!response.ok) {
-  return {
-    statusCode: 502,
-    body: JSON.stringify({
-      message: data.error_messages
-        ? data.error_messages.join(", ")
-        : (data.message || "Gagal membuat pembayaran")
-    })
-  };
-}
+    if (!response.ok || !data.redirect_url) {
+      return {
+        statusCode: 502,
+        body: JSON.stringify({
+          message: "Midtrans gagal membuat pembayaran",
+          detail: data
+        })
+      };
     }
 
     return {
@@ -90,11 +86,12 @@ exports.handler = async (event) => {
         redirect_url: data.redirect_url
       })
     };
+
   } catch (error) {
     return {
       statusCode: 500,
       body: JSON.stringify({
-        message: "Terjadi kesalahan pada server"
+        message: error.message || "Terjadi kesalahan server"
       })
     };
   }
