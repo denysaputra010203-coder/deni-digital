@@ -69,12 +69,15 @@ exports.handler = async (event) => {
     const data = await response.json();
 
     if (!response.ok) {
-      return {
-        statusCode: 502,
-        body: JSON.stringify({
-          message: "Gagal membuat pembayaran"
-        })
-      };
+  return {
+    statusCode: 502,
+    body: JSON.stringify({
+      message: data.error_messages
+        ? data.error_messages.join(", ")
+        : (data.message || "Gagal membuat pembayaran")
+    })
+  };
+}
     }
 
     return {
