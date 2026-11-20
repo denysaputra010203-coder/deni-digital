@@ -173,12 +173,13 @@ checkoutButton.addEventListener("click", async () => {
     const result = await response.json();
 
     if (!response.ok || !result.redirect_url) {
-      throw new Error("Checkout gagal");
+  throw new Error(result.message || "Checkout gagal");
+}
     }
 
     window.location.href = result.redirect_url;
   } catch (error) {
-    alert("Pembayaran belum berhasil dibuat. Silakan coba lagi.");
+    alert(error.message || "Pembayaran gagal"); Silakan coba lagi.");
     checkoutButton.disabled = false;
     checkoutButton.textContent = "TEST PAYMENTT — Rp50.000";
   }
